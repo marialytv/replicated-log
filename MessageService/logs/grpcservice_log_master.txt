@@ -1,0 +1,8 @@
+[11:27:01 INF] [Master Service] GetMessages called.
+[11:27:07 INF] [Master Service] AddMessage called with message: message 1.
+[11:27:17 INF] [Master Service] AddMessage finished for message: message 1.
+[11:27:17 INF] [Master Service] GetMessages called.
+[11:28:09 INF] [Master Service] GetMessages called.
+[11:28:12 INF] [Master Service] AddMessage called with message: message 2.
+[11:28:22 INF] [Master Service] AddMessage finished for message: message 2.
+[11:28:22 INF] [Master Service] GetMessages called.

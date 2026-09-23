@@ -1,0 +1,4 @@
+[11:27:07 INF] [Secondary 2 Service] AddMessage called with message: message 1.
+[11:27:17 INF] [Secondary 2 Service] AddMessage finished for message: message 1.
+[11:28:12 INF] [Secondary 2 Service] AddMessage called with message: message 2.
+[11:28:22 INF] [Secondary 2 Service] AddMessage finished for message: message 2.

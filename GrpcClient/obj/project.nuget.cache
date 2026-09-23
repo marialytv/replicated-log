@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "dgSpecHash": "AccL7nnMAGc=",
+  "success": true,
+  "projectFilePath": "/Users/mlytvyn/Documents/Work/UCU/Distributed Systems/ReplicatedLog/GrpcClient/GrpcClient.csproj",
+  "expectedPackageFiles": [
+    "/Users/mlytvyn/.nuget/packages/automapper/12.0.1/automapper.12.0.1.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/google.protobuf/3.36.2/google.protobuf.3.36.2.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc/2.46.6/grpc.2.46.6.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.aspnetcore/2.84.0/grpc.aspnetcore.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.aspnetcore.server/2.84.0/grpc.aspnetcore.server.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.aspnetcore.server.clientfactory/2.84.0/grpc.aspnetcore.server.clientfactory.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.core/2.46.6/grpc.core.2.46.6.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.core.api/2.84.0/grpc.core.api.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.net.client/2.84.0/grpc.net.client.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.net.client.web/2.63.0/grpc.net.client.web.2.63.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.net.clientfactory/2.84.0/grpc.net.clientfactory.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.net.common/2.84.0/grpc.net.common.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/grpc.tools/2.84.0/grpc.tools.2.84.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/independentreserve.grpc/4.3.257/independentreserve.grpc.4.3.257.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/independentreserve.grpc.tools/4.3.257/independentreserve.grpc.tools.4.3.257.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.configuration/10.0.0/microsoft.extensions.configuration.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.configuration.abstractions/10.0.0/microsoft.extensions.configuration.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.configuration.binder/10.0.0/microsoft.extensions.configuration.binder.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.dependencyinjection/10.0.0/microsoft.extensions.dependencyinjection.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.0/microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.dependencymodel/10.0.0/microsoft.extensions.dependencymodel.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.diagnostics/8.0.1/microsoft.extensions.diagnostics.8.0.1.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.diagnostics.abstractions/10.0.0/microsoft.extensions.diagnostics.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.fileproviders.abstractions/10.0.0/microsoft.extensions.fileproviders.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.hosting.abstractions/10.0.0/microsoft.extensions.hosting.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.http/8.0.1/microsoft.extensions.http.8.0.1.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.logging/10.0.0/microsoft.extensions.logging.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.0/microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.options/10.0.0/microsoft.extensions.options.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.options.configurationextensions/8.0.0/microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/microsoft.extensions.primitives/10.0.0/microsoft.extensions.primitives.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog/4.3.0/serilog.4.3.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.aspnetcore/10.0.1-dev-02312/serilog.aspnetcore.10.0.1-dev-02312.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.extensions.hosting/10.0.0/serilog.extensions.hosting.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.extensions.logging/10.0.0/serilog.extensions.logging.10.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.formatting.compact/3.0.0/serilog.formatting.compact.3.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.settings.configuration/10.0.1/serilog.settings.configuration.10.0.1.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.sinks.console/6.1.1/serilog.sinks.console.6.1.1.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.sinks.debug/3.0.0/serilog.sinks.debug.3.0.0.nupkg.sha512",
+    "/Users/mlytvyn/.nuget/packages/serilog.sinks.file/8.0.0-nblumhardt-02322/serilog.sinks.file.8.0.0-nblumhardt-02322.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'AutoMapper' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x",
+      "projectPath": "/Users/mlytvyn/Documents/Work/UCU/Distributed Systems/ReplicatedLog/GrpcClient/GrpcClient.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mlytvyn/Documents/Work/UCU/Distributed Systems/ReplicatedLog/GrpcClient/GrpcClient.csproj",
+      "libraryId": "AutoMapper",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}
