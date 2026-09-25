@@ -1,0 +1,60 @@
+﻿services:
+  grpc-client:
+    build:
+      dockerfile: ./GrpcClient/Dockerfile
+    image: grpcclient-img
+    stdin_open: true
+    tty: true
+    depends_on:
+      - master-service
+    networks:
+      - grpc-network
+  
+  master-service:
+    build:
+      dockerfile: ./MessageService/Dockerfile
+    image: message-service-img
+    environment:
+      - ASPNETCORE_URLS=http://+:5003
+      - ASPNETCORE_HTTP_PORTS=5000
+    command: ["--configFile=/app/appsettings.Master.json"]
+    volumes:
+      - ./MessageService/appsettings.Master.json:/app/appsettings.Master.json:ro
+    ports:
+      - "5003:5003"
+    networks:
+      - grpc-network
+
+  secondary1-service:
+    build:
+      dockerfile: ./MessageService/Dockerfile
+    image: message-service-img
+    environment:
+      - ASPNETCORE_URLS=http://+:5001
+      - ASPNETCORE_HTTP_PORTS=5000
+    command: ["--configFile=/app/appsettings.Secondary1.json"]
+    volumes:
+      - ./MessageService/appsettings.Secondary1.json:/app/appsettings.Secondary1.json:ro
+    ports:
+      - "5001:5001"
+    networks:
+      - grpc-network
+
+  secondary2-service:
+    build:
+      dockerfile: ./MessageService/Dockerfile
+    image: message-service-img
+    environment:
+      - ASPNETCORE_URLS=http://+:5002
+      - ASPNETCORE_HTTP_PORTS=5000
+    command: ["--configFile=/app/appsettings.Secondary2.json"]
+    volumes:
+      - ./MessageService/appsettings.Secondary2.json:/app/appsettings.Secondary2.json:ro
+    ports:
+      - "5002:5002"
+    networks:
+      - grpc-network
+    
+networks:
+  grpc-network:
+    driver: bridge

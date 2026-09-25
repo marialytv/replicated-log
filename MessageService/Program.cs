@@ -5,13 +5,13 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddCommandLine(args);
-var customConfigFile = builder.Configuration["configFile"] ?? "appsettings.json";
+var customConfigFile = builder.Configuration["configFile"];
 builder.Configuration.AddJsonFile(customConfigFile, optional: false, reloadOnChange: true);
 builder.Services.AddGrpc();
 var url = builder.Configuration["ServiceConfig:SelfUrl"];
 bool isMaster = bool.Parse(builder.Configuration["ServiceConfig:IsMaster"] ?? "false");
-Console.WriteLine(url);
-Console.WriteLine(isMaster);
+Console.WriteLine($"Service url: {url}");
+Console.WriteLine($"Is master service?: {isMaster}");
 builder.Services.AddSingleton<ClusterManager>();
 
 //setup logging
