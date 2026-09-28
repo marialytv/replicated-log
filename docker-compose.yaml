@@ -5,8 +5,14 @@
     image: grpcclient-img
     stdin_open: true
     tty: true
+    environment:
+      - master-node=http://master-service:5003
+      - secondary1-node=http://secondary1-service:5001
+      - secondary2-node=http://secondary2-service:5002
     depends_on:
       - master-service
+      - secondary1-service
+      - secondary2-service
     networks:
       - grpc-network
   

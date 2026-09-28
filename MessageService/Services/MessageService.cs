@@ -6,12 +6,8 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
 {
     private readonly ClusterManager _clusterManager;
     private readonly ILogger<MessageServiceImpl> _logger;
-    
-    private static readonly List<MessageResponse> _items = new()
-    {
-        new MessageResponse { Message = "Test message 1" },
-        new MessageResponse { Message = "Test message 2" }
-    };
+
+    private static readonly List<MessageResponse> _items = new();
 
     public MessageServiceImpl(ClusterManager clusterManager, ILogger<MessageServiceImpl> logger)
     {
