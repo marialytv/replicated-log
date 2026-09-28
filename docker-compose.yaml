@@ -21,7 +21,6 @@
     command: ["--configFile=/app/appsettings.Master.json"]
     volumes:
       - ./MessageService/appsettings.Master.json:/app/appsettings.Master.json
-      - ./MessageService/logs/grcpservice_log_master.txt:/logs/grcpservice_log_master.txt
     ports:
       - "5003:5003"
     networks:
@@ -37,7 +36,6 @@
     command: ["--configFile=/app/appsettings.Secondary1.json"]
     volumes:
       - ./MessageService/appsettings.Secondary1.json:/app/appsettings.Secondary1.json
-      - ./MessageService/logs/grcpservice_log_secondary1.txt:/logs/grcpservice_log_secondary1.txt
     ports:
       - "5001:5001"
     networks:
@@ -53,7 +51,6 @@
     command: ["--configFile=/app/appsettings.Secondary2.json"]
     volumes:
       - ./MessageService/appsettings.Secondary2.json:/app/appsettings.Secondary2.json
-      - ./MessageService/logs/grcpservice_log_secondary2.txt:/logs/grcpservice_log_secondary2.txt
     ports:
       - "5002:5002"
     networks:
