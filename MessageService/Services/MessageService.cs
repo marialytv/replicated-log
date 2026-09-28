@@ -31,7 +31,7 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
     {
         _logger.LogInformation($"AddMessage called with message: {request.Message}.");
 
-        if (_clusterManager.IsMaster)
+        if (_clusterManager.ServiceSetting.IsMaster)
         {
             var secondaryTasks = _clusterManager.Clients.Select(client =>
                 client.AddMessageAsync(request, cancellationToken: context.CancellationToken).ResponseAsync
@@ -44,7 +44,7 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
             Message = request.Message
         };
         
-        Thread.Sleep(_clusterManager.Delay);
+        Thread.Sleep(_clusterManager.ServiceSetting.Delay);
         _items.Add(newItem);
         _logger.LogInformation($"AddMessage finished for message: {request.Message}.");
         return Task.FromResult(newItem);

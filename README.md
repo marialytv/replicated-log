@@ -9,3 +9,8 @@ Logs from calling get/post messages for each service(master and secondaries) can
 docker desktop-> select container(i.e. master-service)-> Files->app->logs-> 
 'grpcservice_log_master.txt'. 
 
+In order to change service delay,
+update DelayInSec setting in ServiceConfig block of each service appsetting.*servicename*.json file
+(appsettings.Master.json,
+appsettings.Secondary1.json,
+appsettings.Secondary2.json)

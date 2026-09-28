@@ -1,28 +1,31 @@
 using Grpc.Net.Client;
 using GrpcServices;
+using MasterService.Settings;
+using Microsoft.Extensions.Options;
+
 namespace MasterService.Managers;
 
 public class ClusterManager
 {
-    public bool IsMaster { get;  }
-    /// <summary>
-    /// Service delay in ms
-    /// </summary>
-    public int Delay { get; } 
-    
+    private readonly IDisposable _changeListener;
     private readonly List<GrpcChannel> _channels = new();
+    private readonly ILogger<ClusterManager> _logger;
+    public ServiceSetting ServiceSetting { get; private set; }
     public List<MessageService.MessageServiceClient> Clients { get; } = new();
 
-    public ClusterManager(IConfiguration config)
+    public ClusterManager(IOptionsMonitor<ServiceSetting> optionsMonitor, ILogger<ClusterManager> logger)
     {
-        IsMaster = config.GetValue<bool>("ServiceConfig:IsMaster");
-        Delay = config.GetValue<int>("ServiceConfig:DelayInSec") * 1000;
-
-        if (IsMaster)
+        _logger = logger;
+        ServiceSetting = optionsMonitor.CurrentValue;
+        _changeListener = optionsMonitor.OnChange(newSettings =>
         {
-            var endpoints = config.GetSection("ServiceConfig:SecondariesEndpoints").Get<string[]>() ?? Array.Empty<string>();
-
-            foreach (var url in endpoints)
+            ServiceSetting = newSettings;
+            _logger.LogInformation($"Service config was changed. New delay is  {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s.");
+        })!;
+        
+        if (ServiceSetting.IsMaster)
+        { 
+            foreach (var url in ServiceSetting.SecondariesEndpoints ?? Enumerable.Empty<string>())
             {
                 var channel = GrpcChannel.ForAddress(url);
                 _channels.Add(channel);
@@ -33,6 +36,7 @@ public class ClusterManager
 
     public void Dispose()
     {
+        _changeListener.Dispose();
         foreach (var channel in _channels)
         {
             channel.Dispose();
