@@ -15,11 +15,13 @@
       dockerfile: ./MessageService/Dockerfile
     image: message-service-img
     environment:
+      - ASPNETCORE_ENVIRONMENT=Master
       - ASPNETCORE_URLS=http://+:5003
-      - ASPNETCORE_HTTP_PORTS=5000
+      - ASPNETCORE_HTTP_PORTS=5003
     command: ["--configFile=/app/appsettings.Master.json"]
     volumes:
-      - ./MessageService/appsettings.Master.json:/app/appsettings.Master.json:ro
+      - ./MessageService/appsettings.Master.json:/app/appsettings.Master.json
+      - ./MessageService/logs/grcpservice_log_master.txt:/logs/grcpservice_log_master.txt
     ports:
       - "5003:5003"
     networks:
@@ -30,11 +32,12 @@
       dockerfile: ./MessageService/Dockerfile
     image: message-service-img
     environment:
+      - ASPNETCORE_ENVIRONMENT=Secondary1
       - ASPNETCORE_URLS=http://+:5001
-      - ASPNETCORE_HTTP_PORTS=5000
     command: ["--configFile=/app/appsettings.Secondary1.json"]
     volumes:
-      - ./MessageService/appsettings.Secondary1.json:/app/appsettings.Secondary1.json:ro
+      - ./MessageService/appsettings.Secondary1.json:/app/appsettings.Secondary1.json
+      - ./MessageService/logs/grcpservice_log_secondary1.txt:/logs/grcpservice_log_secondary1.txt
     ports:
       - "5001:5001"
     networks:
@@ -45,11 +48,12 @@
       dockerfile: ./MessageService/Dockerfile
     image: message-service-img
     environment:
+      - ASPNETCORE_ENVIRONMENT=Secondary2
       - ASPNETCORE_URLS=http://+:5002
-      - ASPNETCORE_HTTP_PORTS=5000
     command: ["--configFile=/app/appsettings.Secondary2.json"]
     volumes:
-      - ./MessageService/appsettings.Secondary2.json:/app/appsettings.Secondary2.json:ro
+      - ./MessageService/appsettings.Secondary2.json:/app/appsettings.Secondary2.json
+      - ./MessageService/logs/grcpservice_log_secondary2.txt:/logs/grcpservice_log_secondary2.txt
     ports:
       - "5002:5002"
     networks:

@@ -17,14 +17,17 @@ public class ClusterManager
     {
         IsMaster = config.GetValue<bool>("ServiceConfig:IsMaster");
         Delay = config.GetValue<int>("ServiceConfig:DelayInSec") * 1000;
-        
-        var endpoints = config.GetSection("ServiceConfig:SecondariesEndpoints").Get<string[]>() ?? Array.Empty<string>();
 
-        foreach (var url in endpoints)
+        if (IsMaster)
         {
-            var channel = GrpcChannel.ForAddress(url);
-            _channels.Add(channel);
-            Clients.Add(new MessageService.MessageServiceClient(channel));
+            var endpoints = config.GetSection("ServiceConfig:SecondariesEndpoints").Get<string[]>() ?? Array.Empty<string>();
+
+            foreach (var url in endpoints)
+            {
+                var channel = GrpcChannel.ForAddress(url);
+                _channels.Add(channel);
+                Clients.Add(new MessageService.MessageServiceClient(channel));
+            }
         }
     }
 

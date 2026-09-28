@@ -1,7 +1,6 @@
 using MasterService.Managers;
 using Serilog;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddCommandLine(args);
