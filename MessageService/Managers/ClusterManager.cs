@@ -1,4 +1,5 @@
 using Grpc.Net.Client;
+using Grpc.Net.ClientFactory;
 using GrpcServices;
 using MasterService.Settings;
 using Microsoft.Extensions.Options;
@@ -25,15 +26,19 @@ public class ClusterManager
         
         if (ServiceSetting.IsMaster)
         { 
-            foreach (var url in ServiceSetting.SecondariesEndpoints ?? Enumerable.Empty<string>())
-            {
-                var channel = GrpcChannel.ForAddress(url);
-                _channels.Add(channel);
-                Clients.Add(new MessageService.MessageServiceClient(channel));
-            }
+            CreateClients();
         }
     }
-
+    private void CreateClients()
+    {
+        foreach (var url in ServiceSetting.SecondariesEndpoints ?? Enumerable.Empty<string>())
+        {
+            var channel = GrpcChannel.ForAddress(url);
+            _channels.Add(channel);
+            Clients.Add(new MessageService.MessageServiceClient(channel));
+        }
+    }
+    
     public void Dispose()
     {
         _changeListener.Dispose();

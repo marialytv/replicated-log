@@ -24,7 +24,6 @@
       - ASPNETCORE_ENVIRONMENT=Master
       - ASPNETCORE_URLS=http://+:5003
       - ASPNETCORE_HTTP_PORTS=5003
-    command: ["--configFile=/app/appsettings.Master.json"]
     volumes:
       - ./MessageService/appsettings.Master.json:/app/appsettings.Master.json
     ports:
@@ -39,7 +38,6 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Secondary1
       - ASPNETCORE_URLS=http://+:5001
-    command: ["--configFile=/app/appsettings.Secondary1.json"]
     volumes:
       - ./MessageService/appsettings.Secondary1.json:/app/appsettings.Secondary1.json
     ports:
@@ -54,7 +52,6 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Secondary2
       - ASPNETCORE_URLS=http://+:5002
-    command: ["--configFile=/app/appsettings.Secondary2.json"]
     volumes:
       - ./MessageService/appsettings.Secondary2.json:/app/appsettings.Secondary2.json
     ports:
