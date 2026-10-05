@@ -1,18 +1,13 @@
 syntax = "proto3";
 
-// This becomes the C# namespace
 option csharp_namespace = "GrpcServices";
 
-// The Service Definition
 service MessageService {
-  // Equivalent to a GET: requests nothing, returns a list
   rpc GetMessages (Empty) returns (MessageList);
-
-  // Equivalent to a POST: requests a name, returns the created item
+  
   rpc AddMessage (MessageRequest) returns (MessageResponse);
 }
 
-// Messages used for sending and receiving data
 message Empty {}
 
 message MessageRequest {
@@ -24,5 +19,5 @@ message MessageResponse {
 }
 
 message MessageList {
-  repeated MessageResponse items = 1; // "repeated" means this is a List/Array
+  repeated MessageResponse items = 1;
 }
