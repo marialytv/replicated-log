@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.Collections;using Grpc.Net.Client;
+﻿using Grpc.Net.Client;
 using GrpcServices;
 
 var masterAddress = Environment.GetEnvironmentVariable("master-node") ?? "http://localhost:5003";
