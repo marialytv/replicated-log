@@ -21,7 +21,9 @@ public class ClusterManager
         _changeListener = optionsMonitor.OnChange(newSettings =>
         {
             ServiceSetting = newSettings;
-            _logger.LogInformation($"Service config was changed. New delay is  {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s.");
+            _logger.LogInformation($"Service config was changed. New configs are: " +
+                                   $"\nDelay = {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s." +
+                                   $"Write Concern = {ServiceSetting.WriteConcern.ToString()}(value={(int)ServiceSetting.WriteConcern}).");
         })!;
         
         if (ServiceSetting.IsMaster)

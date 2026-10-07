@@ -1,6 +1,7 @@
 using Grpc.Core;
 using GrpcServices;
 using MasterService.Managers;
+using MasterService.Settings;
 
 public class MessageServiceImpl : MessageService.MessageServiceBase
 {
@@ -23,16 +24,26 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         return Task.FromResult(list);
     }
 
-    public override Task<MessageResponse> AddMessage(MessageRequest request, ServerCallContext context)
+    public override async Task<MessageResponse> AddMessage(MessageRequest request, ServerCallContext context)
     {
         _logger.LogInformation($"AddMessage called with message: {request.Message}.");
 
         if (_clusterManager.ServiceSetting.IsMaster)
         {
+            _logger.LogInformation($"Write concern is: {_clusterManager.ServiceSetting.WriteConcern}.");
+            
+            //start replication regardless of set writeconcern parameter
             var secondaryTasks = _clusterManager.Clients.Select(client =>
                 client.AddMessageAsync(request, cancellationToken: context.CancellationToken).ResponseAsync
             ).ToList();
-            Task.WaitAll(secondaryTasks);
+            if (_clusterManager.ServiceSetting.WriteConcern == WriteConcern.All)
+            {
+                Task.WaitAll(secondaryTasks);
+            }
+            else if (_clusterManager.ServiceSetting.WriteConcern == WriteConcern.MasterAndSecondary1)
+            {
+                await secondaryTasks[0];
+            }
         }
         
         var newItem = new MessageResponse
@@ -43,6 +54,6 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         Thread.Sleep(_clusterManager.ServiceSetting.Delay);
         _items.Add(newItem);
         _logger.LogInformation($"AddMessage finished for message: {request.Message}.");
-        return Task.FromResult(newItem);
+        return await Task.FromResult(newItem);
     }
 }

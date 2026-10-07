@@ -1,4 +1,6 @@
 ﻿namespace MessageServiceTests;
+
+using MasterService.Settings;
 using System.Diagnostics;
 using Grpc.Net.Client;
 using GrpcServices;
@@ -14,7 +16,7 @@ public class MessageServiceTest
     private KestrelWebApplicationFactory<Program>? _secondary2Factory;
     private WebApplicationFactory<Program>? _masterFactory;
     
-    public void Setup(int secondary1Delay, int secondary2Delay)
+    public void Setup(WriteConcern writeConcern, int secondary1Delay, int secondary2Delay)
     {
         _secondary1Factory = new KestrelWebApplicationFactory<Program>(5001, new Dictionary<string, string>
         {
@@ -40,6 +42,7 @@ public class MessageServiceTest
                     {
                         { "ServiceConfig:DelayInSec", "0" },
                         { "ServiceConfig:IsMaster", "true" },
+                        { "ServiceConfig:WriteConcern", ((int)writeConcern).ToString() },
                         { "ServiceConfig:SelfUrl", "http://localhost:5003" },
                         { "ServiceConfig:SecondariesEndpoints:0", "http://localhost:5001" },
                         { "ServiceConfig:SecondariesEndpoints:1", "http://localhost:5002" }
@@ -60,12 +63,15 @@ public class MessageServiceTest
     }
 
     [Test]
-    [TestCase(2,5,5)]
-    [TestCase(0,0,0)]
-    [TestCase(7,4,7)]
-    public void Master_Should_Wait_All_Secondaries(int secondary1Delay, int secondary2Delay, int expected)
+    [TestCase(WriteConcern.MasterOnly, 2,5,0)]
+    [TestCase(WriteConcern.All, 2,5,5)]
+    [TestCase(WriteConcern.All, 7,5,7)]
+    [TestCase(WriteConcern.MasterAndSecondary1, 2,5,2)]
+    [TestCase(WriteConcern.MasterAndSecondary1, 2,7,2)]
+    [TestCase(WriteConcern.MasterAndSecondary1, 0,3,0)]
+    public void Test(WriteConcern writeConcern, int secondary1Delay, int secondary2Delay, int expected)
     {
-        Setup(secondary1Delay, secondary2Delay);
+        Setup(writeConcern, secondary1Delay, secondary2Delay);
         
         var httpClient = _masterFactory!.CreateDefaultClient();
         var masterChannel = GrpcChannel.ForAddress("http://localhost:5003", new GrpcChannelOptions

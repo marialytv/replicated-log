@@ -27,16 +27,34 @@ while(true)
         break;
     }
     
-    var response = await masterClient.AddMessageAsync(new MessageRequest { Message = newMessage });
+    var response =  masterClient.AddMessage(new MessageRequest { Message = newMessage });
     Console.WriteLine($"Success! Added message: {response.Message}");
+    
+    RunGetRequests();
+    
+    int secondsLeft = 10;
+    while (secondsLeft > 0)
+    {
+        Console.Write($"\rCall another Get requests in: {secondsLeft} seconds   ");
+            
+        Thread.Sleep(1000);
+        secondsLeft--;
+    }
+    Console.WriteLine();
+    
+    RunGetRequests();
+}
+
+void RunGetRequests()
+{
     Console.Write("Messages from master: ");
-    var updatedMasterItems = await masterClient.GetMessagesAsync(new Empty());
+    var updatedMasterItems = masterClient.GetMessages(new Empty());
     WriteMessages(updatedMasterItems);
     Console.Write("Messages from secondary1: ");
-    var updatedSecondary1Items = await secondary1Client.GetMessagesAsync(new Empty());
+    var updatedSecondary1Items = secondary1Client.GetMessages(new Empty());
     WriteMessages(updatedSecondary1Items);
     Console.Write("Messages from secondary2: ");
-    var updatedSecondary2Items = await secondary2Client.GetMessagesAsync(new Empty());
+    var updatedSecondary2Items = secondary2Client.GetMessages(new Empty());
     WriteMessages(updatedSecondary2Items);
 }
 

@@ -10,5 +10,6 @@ public class ServiceSetting
     }
 
     public bool IsMaster { get; set; }
+    public WriteConcern WriteConcern { get; set; }
     public List<string>? SecondariesEndpoints { get; set; }
 }
