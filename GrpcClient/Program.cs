@@ -7,11 +7,11 @@ var masterClient = new MessageService.MessageServiceClient(masterChannel);
 
 var secondary1Address = Environment.GetEnvironmentVariable("secondary1-node") ?? "http://localhost:5001";
 using var secondary1Channel = GrpcChannel.ForAddress(secondary1Address);
-var secondary1Client = new MessageService.MessageServiceClient(masterChannel);
+var secondary1Client = new MessageService.MessageServiceClient(secondary1Channel);
 
 var secondary2Address = Environment.GetEnvironmentVariable("secondary2-node") ?? "http://localhost:5002";
 using var secondary2Channel = GrpcChannel.ForAddress(secondary2Address);
-var secondary2Client = new MessageService.MessageServiceClient(masterChannel);
+var secondary2Client = new MessageService.MessageServiceClient(secondary2Channel);
 
 Console.WriteLine(" Console application started.");
 Console.WriteLine(" Type 'exit' to close the program.");
