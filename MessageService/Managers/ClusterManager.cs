@@ -22,8 +22,7 @@ public class ClusterManager
         {
             ServiceSetting = newSettings;
             _logger.LogInformation($"Service config was changed. New configs are: " +
-                                   $"\nDelay = {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s." +
-                                   $"Write Concern = {ServiceSetting.WriteConcern.ToString()}(value={(int)ServiceSetting.WriteConcern}).");
+                                   $"\nDelay = {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s.");
         })!;
         
         if (ServiceSetting.IsMaster)

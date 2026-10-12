@@ -12,6 +12,7 @@ message Empty {}
 
 message MessageRequest {
   string message = 1;
+  int32 writeConcern = 2;
 }
 
 message MessageResponse {

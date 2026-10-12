@@ -14,36 +14,26 @@ using var secondary2Channel = GrpcChannel.ForAddress(secondary2Address);
 var secondary2Client = new MessageService.MessageServiceClient(secondary2Channel);
 
 Console.WriteLine(" Console application started.");
-Console.WriteLine(" Type 'exit' to close the program.");
 
-while(true)
+var task1 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg1", WriteConcern = 1 }).ResponseAsync;
+RunGetRequests();
+var task2 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg2", WriteConcern = 2 }).ResponseAsync;
+RunGetRequests();
+var task3 =  masterClient.AddMessageAsync(new MessageRequest { Message = "msg3", WriteConcern = 3 }).ResponseAsync;
+RunGetRequests();
+var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 }).ResponseAsync;
+RunGetRequests();
+int secondsLeft = 8;
+while (secondsLeft > 0)
 {
-    Console.WriteLine("Enter a new message to the list:");
-   
-    var newMessage = Console.ReadLine();
-    if (string.Equals(newMessage?.Trim(), "exit", StringComparison.OrdinalIgnoreCase))
-    {
-        Console.WriteLine("Exiting console application...");
-        break;
-    }
-    
-    var response =  masterClient.AddMessage(new MessageRequest { Message = newMessage });
-    Console.WriteLine($"Success! Added message: {response.Message}");
-    
-    RunGetRequests();
-    
-    int secondsLeft = 10;
-    while (secondsLeft > 0)
-    {
-        Console.Write($"\rCall another Get requests in: {secondsLeft} seconds   ");
-            
-        Thread.Sleep(1000);
-        secondsLeft--;
-    }
-    Console.WriteLine();
-    
-    RunGetRequests();
+    Console.Write($"\rCall another Get requests to check the final state in: {secondsLeft} seconds   ");
+
+    Thread.Sleep(1000);
+    secondsLeft--;
 }
+
+Console.WriteLine();
+RunGetRequests();
 
 void RunGetRequests()
 {
@@ -64,5 +54,6 @@ void WriteMessages(MessageList messages)
     {
         Console.Write($"{item.Message}, ");
     }
+
     Console.WriteLine();
 }

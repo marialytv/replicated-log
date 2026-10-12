@@ -22,37 +22,37 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         var list = new MessageList();
         list.Items.AddRange(_items);
         return Task.FromResult(list);
+        ;
     }
 
     public override async Task<MessageResponse> AddMessage(MessageRequest request, ServerCallContext context)
     {
         _logger.LogInformation($"AddMessage called with message: {request.Message}.");
-
-        if (_clusterManager.ServiceSetting.IsMaster)
-        {
-            _logger.LogInformation($"Write concern is: {_clusterManager.ServiceSetting.WriteConcern}.");
-            
-            //start replication regardless of set writeconcern parameter
-            var secondaryTasks = _clusterManager.Clients.Select(client =>
-                client.AddMessageAsync(request, cancellationToken: context.CancellationToken).ResponseAsync
-            ).ToList();
-            if (_clusterManager.ServiceSetting.WriteConcern == WriteConcern.All)
-            {
-                Task.WaitAll(secondaryTasks);
-            }
-            else if (_clusterManager.ServiceSetting.WriteConcern == WriteConcern.MasterAndSecondary1)
-            {
-                await secondaryTasks[0];
-            }
-        }
-        
+        Thread.Sleep(_clusterManager.ServiceSetting.Delay);
         var newItem = new MessageResponse
         {
             Message = request.Message
         };
-        
-        Thread.Sleep(_clusterManager.ServiceSetting.Delay);
         _items.Add(newItem);
+        if (_clusterManager.ServiceSetting.IsMaster)
+        {
+            //start replication regardless of writeconcern value
+            var secondaryTasks = _clusterManager.Clients.Select(client =>
+                client.AddMessageAsync(request).ResponseAsync
+            ).ToList();
+            //wait for all secondaries to finish replication
+            if (request.WriteConcern == (int)WriteConcern.All)
+            {
+                await Task.WhenAll(secondaryTasks);
+            }
+            //wait for at least one secondary to finish replication
+            else if (request.WriteConcern == (int)WriteConcern.MasterAndSecondary)
+            {
+                await Task.WhenAny(secondaryTasks);
+            }
+        }
+
+
         _logger.LogInformation($"AddMessage finished for message: {request.Message}.");
         return await Task.FromResult(newItem);
     }
