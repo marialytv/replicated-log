@@ -15,8 +15,8 @@ public class MessageServiceTest
     private KestrelWebApplicationFactory<Program>? _secondary1Factory;
     private KestrelWebApplicationFactory<Program>? _secondary2Factory;
     private WebApplicationFactory<Program>? _masterFactory;
-    
-    public void Setup(int secondary1Delay, int secondary2Delay)
+
+    private void Setup(int secondary1Delay, int secondary2Delay)
     {
         _secondary1Factory = new KestrelWebApplicationFactory<Program>(5001, new Dictionary<string, string>
         {
@@ -69,7 +69,7 @@ public class MessageServiceTest
     [TestCase(WriteConcern.MasterAndSecondary, 0,5,0)]
     [TestCase(WriteConcern.MasterAndSecondary, 2,5,2)]
     [TestCase(WriteConcern.MasterAndSecondary, 7,3,3)]
-    public void Test(WriteConcern writeConcern, int secondary1Delay, int secondary2Delay, int expected)
+    public async Task Test(WriteConcern writeConcern, int secondary1Delay, int secondary2Delay, int expected)
     {
         Setup(secondary1Delay, secondary2Delay);
         
@@ -83,7 +83,7 @@ public class MessageServiceTest
         
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        masterClient.AddMessage(new MessageRequest{Message = "msg1", WriteConcern = (int)writeConcern});
+        await masterClient.AddMessageAsync(new MessageRequest{Message = "msg1", WriteConcern = (int)writeConcern});
         stopwatch.Stop();
         
         Assert.That(stopwatch.Elapsed.Seconds, Is.EqualTo(expected));

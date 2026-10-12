@@ -16,13 +16,13 @@ var secondary2Client = new MessageService.MessageServiceClient(secondary2Channel
 Console.WriteLine(" Console application started.");
 
 var task1 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg1", WriteConcern = 1 }).ResponseAsync;
-RunGetRequests();
+await RunGetRequests();
 var task2 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg2", WriteConcern = 2 }).ResponseAsync;
-RunGetRequests();
+await RunGetRequests();
 var task3 =  masterClient.AddMessageAsync(new MessageRequest { Message = "msg3", WriteConcern = 3 }).ResponseAsync;
-RunGetRequests();
+await RunGetRequests();
 var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 }).ResponseAsync;
-RunGetRequests();
+await RunGetRequests();
 int secondsLeft = 8;
 while (secondsLeft > 0)
 {
@@ -33,18 +33,18 @@ while (secondsLeft > 0)
 }
 
 Console.WriteLine();
-RunGetRequests();
+await RunGetRequests();
 
-void RunGetRequests()
+async Task RunGetRequests()
 {
     Console.Write("Messages from master: ");
-    var updatedMasterItems = masterClient.GetMessages(new Empty());
+    var updatedMasterItems =  await masterClient.GetMessagesAsync(new Empty());
     WriteMessages(updatedMasterItems);
     Console.Write("Messages from secondary1: ");
-    var updatedSecondary1Items = secondary1Client.GetMessages(new Empty());
+    var updatedSecondary1Items = await secondary1Client.GetMessagesAsync(new Empty());
     WriteMessages(updatedSecondary1Items);
     Console.Write("Messages from secondary2: ");
-    var updatedSecondary2Items = secondary2Client.GetMessages(new Empty());
+    var updatedSecondary2Items = await secondary2Client.GetMessagesAsync(new Empty());
     WriteMessages(updatedSecondary2Items);
 }
 

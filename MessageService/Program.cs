@@ -1,4 +1,5 @@
 using MasterService.Managers;
+using MasterService.ReplicationHelpers;
 using MasterService.Settings;
 using Serilog;
 
@@ -9,6 +10,7 @@ var url = builder.Configuration["ServiceConfig:SelfUrl"];
 builder.Services.Configure<ServiceSetting>(
     builder.Configuration.GetSection("ServiceConfig"));
 builder.Services.AddSingleton<ClusterManager>();
+builder.Services.AddSingleton<WriteAheadLog>();
 
 //setup logging
 

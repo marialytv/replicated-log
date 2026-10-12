@@ -4,8 +4,10 @@ option csharp_namespace = "GrpcServices";
 
 service MessageService {
   rpc GetMessages (Empty) returns (MessageList);
-  
+  //called by external clients(accepted by master) 
   rpc AddMessage (MessageRequest) returns (MessageResponse);
+  //called by the master for replication
+  rpc ProcessMessage (DataRequest) returns (DataResponse);
 }
 
 message Empty {}
@@ -15,10 +17,17 @@ message MessageRequest {
   int32 writeConcern = 2;
 }
 
+message DataRequest {
+  string message = 1;
+  int64 sequenceID = 2;
+}
+message DataResponse{
+  string output = 1;
+}
+
 message MessageResponse {
   string message = 1;
 }
-
 message MessageList {
   repeated MessageResponse items = 1;
 }
