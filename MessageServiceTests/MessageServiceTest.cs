@@ -54,11 +54,11 @@ public class MessageServiceTest
     [TearDown]
     public void TearDown()
     {
-        _masterFactory?.Dispose();
         _secondary1Factory?.RealKestrelHost?.StopAsync().Wait();
         _secondary1Factory?.Dispose();
         _secondary2Factory?.RealKestrelHost?.StopAsync().Wait();
         _secondary2Factory?.Dispose();
+        _masterFactory?.Dispose();
     }
 
     [Test]
@@ -83,7 +83,7 @@ public class MessageServiceTest
         
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        await masterClient.AddMessageAsync(new MessageRequest{Message = "msg1", WriteConcern = (int)writeConcern});
+        await masterClient.AddMessageAsync(new MessageRequest{Message = $"msg1", WriteConcern = (int)writeConcern});
         stopwatch.Stop();
         
         Assert.That(stopwatch.Elapsed.Seconds, Is.EqualTo(expected));

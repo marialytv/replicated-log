@@ -11,6 +11,7 @@ builder.Services.Configure<ServiceSetting>(
     builder.Configuration.GetSection("ServiceConfig"));
 builder.Services.AddSingleton<ClusterManager>();
 builder.Services.AddSingleton<WriteAheadLog>();
+builder.Services.AddSingleton<SequenceGenerator>();
 
 //setup logging
 

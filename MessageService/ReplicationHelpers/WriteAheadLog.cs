@@ -2,7 +2,7 @@ namespace MasterService.ReplicationHelpers;
 
 public class WriteAheadLog
 {
-    private static long _expectedSequence = 1;
+    private long _expectedSequence = 1;
 
     // buffer for unordered messages
     private readonly Dictionary<long, PendingMessage> _buffer = new();

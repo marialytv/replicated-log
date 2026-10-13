@@ -10,12 +10,13 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
     private readonly ILogger<MessageServiceImpl> _logger;
     private static readonly List<MessageResponse> _items = new();
     private readonly WriteAheadLog _wal;
-    private static long _currentSequence = 0;
+    private readonly SequenceGenerator _sequenceGenerator;
 
-    public MessageServiceImpl(ClusterManager clusterManager, WriteAheadLog wal, ILogger<MessageServiceImpl> logger)
+    public MessageServiceImpl(ClusterManager clusterManager, WriteAheadLog wal, SequenceGenerator sequenceGenerator, ILogger<MessageServiceImpl> logger)
     {
         _clusterManager = clusterManager;
         _wal = wal;
+        _sequenceGenerator = sequenceGenerator;
         _logger = logger;
     }
 
@@ -53,7 +54,7 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         };
         _items.Add(newItem);
         
-        long sequenceId = Interlocked.Increment(ref _currentSequence);
+        long sequenceId = _sequenceGenerator.GetNext();
         _logger.LogInformation($"{sequenceId}, {request.Message}");
         var downstreamReq = new DataRequest
         {
@@ -91,7 +92,7 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         _logger.LogInformation($"ProcessMessage called with message: {request.Message}.");
         Thread.Sleep(_clusterManager.ServiceSetting.Delay);
 
-        string result = await _wal.AppendAsync(request.SequenceID, request.Message);
+        var result = await _wal.AppendAsync(request.SequenceID, request.Message);
 
         _logger.LogInformation($"ProcessMessage finished for message: {request.Message}.");
         return new DataResponse { Output = result };
