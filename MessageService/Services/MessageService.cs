@@ -12,7 +12,8 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
     private readonly WriteAheadLog _wal;
     private readonly SequenceGenerator _sequenceGenerator;
 
-    public MessageServiceImpl(ClusterManager clusterManager, WriteAheadLog wal, SequenceGenerator sequenceGenerator, ILogger<MessageServiceImpl> logger)
+    public MessageServiceImpl(ClusterManager clusterManager, WriteAheadLog wal, SequenceGenerator sequenceGenerator,
+        ILogger<MessageServiceImpl> logger)
     {
         _clusterManager = clusterManager;
         _wal = wal;
@@ -30,10 +31,8 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
         }
         else
         {
-            var snapshot = _wal.GetCommittedMessages();
-            // _logger.LogInformation(string.Join(", ", snapshot));
-            
-            list.Items.AddRange(snapshot.Select(x => new MessageResponse { Message = x }));
+            var committedMessages = _wal.GetCommittedMessages();
+            list.Items.AddRange(committedMessages.Select(x => new MessageResponse { Message = x }));
         }
 
         return Task.FromResult(list);
@@ -53,9 +52,8 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
             Message = request.Message
         };
         _items.Add(newItem);
-        
+
         long sequenceId = _sequenceGenerator.GetNext();
-        _logger.LogInformation($"{sequenceId}, {request.Message}");
         var downstreamReq = new DataRequest
         {
             Message = request.Message,
@@ -89,12 +87,19 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
                 "Only Secondary nodes process replication data."));
         }
 
-        _logger.LogInformation($"ProcessMessage called with message: {request.Message}.");
+        //introduce a delay to emulate messages reordering
+        if (_clusterManager.ServiceSetting.IsReorderingEnabled)
+        {
+            var randomDelay = Random.Shared.Next(10, 500);
+            await Task.Delay(randomDelay);
+        }
+
+        _logger.LogInformation($"ProcessMessage called with message: {request.Message}, seqID={request.SequenceID}.");
         Thread.Sleep(_clusterManager.ServiceSetting.Delay);
 
         var result = await _wal.AppendAsync(request.SequenceID, request.Message);
 
-        _logger.LogInformation($"ProcessMessage finished for message: {request.Message}.");
+        _logger.LogInformation($"ProcessMessage finished for message: {request.Message}, seqID={request.SequenceID}.");
         return new DataResponse { Output = result };
     }
 }

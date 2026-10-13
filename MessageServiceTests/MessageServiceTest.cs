@@ -22,12 +22,14 @@ public class MessageServiceTest
         {
             { "ServiceConfig:DelayInSec", secondary1Delay.ToString() },
             { "ServiceConfig:IsMaster", "false" },
+            { "ServiceConfig:IsReorderingEnabled", "false" },
             { "ServiceConfig:SelfUrl", "http://localhost:5001"}
         });
         _secondary2Factory = new KestrelWebApplicationFactory<Program>(5002, new Dictionary<string, string>
         {
             { "ServiceConfig:DelayInSec", secondary2Delay.ToString() },
             { "ServiceConfig:IsMaster", "false" },
+            { "ServiceConfig:IsReorderingEnabled", "false" },
             { "ServiceConfig:SelfUrl", "http://localhost:5002"}
         });
         _secondary1Factory.Boot();

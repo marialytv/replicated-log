@@ -9,6 +9,7 @@ public class ServiceSetting
         set => field = value * 1000;
     }
 
+    public bool IsReorderingEnabled { get; set; } = false;
     public bool IsMaster { get; set; }
     public List<string>? SecondariesEndpoints { get; set; }
 }

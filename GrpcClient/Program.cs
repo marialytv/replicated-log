@@ -14,6 +14,7 @@ using var secondary2Channel = GrpcChannel.ForAddress(secondary2Address);
 var secondary2Client = new MessageService.MessageServiceClient(secondary2Channel);
 
 Console.WriteLine(" Console application started.");
+Console.WriteLine("Write Concern test");
 
 var task1 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg1", WriteConcern = 1 }).ResponseAsync;
 await RunGetRequests();
@@ -23,22 +24,39 @@ var task3 =  masterClient.AddMessageAsync(new MessageRequest { Message = "msg3",
 await RunGetRequests();
 var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 }).ResponseAsync;
 await RunGetRequests();
-int secondsLeft = 8;
-while (secondsLeft > 0)
-{
-    Console.Write($"\rCall another Get requests to check the final state in: {secondsLeft} seconds   ");
-
-    Thread.Sleep(1000);
-    secondsLeft--;
-}
-
+await RerunGetRequests(8);
 Console.WriteLine();
+
+//Testing Reordering
+Console.WriteLine("ReorderingTest");
+
+for (int i = 10; i <= 14; i++)
+{
+    var call = await masterClient
+        .AddMessageAsync(new MessageRequest { Message = $"msg{i}", WriteConcern = 1 })
+        .ResponseAsync;
+}
 await RunGetRequests();
+await RerunGetRequests(6);
+
+async Task RerunGetRequests(int seconds)
+{
+    while (seconds > 0)
+    {
+        Console.Write($"\rCall another Get requests to check the final state in: {seconds} seconds   ");
+
+        Thread.Sleep(1000);
+        seconds--;
+    }
+
+    Console.WriteLine();
+    await RunGetRequests();
+}
 
 async Task RunGetRequests()
 {
     Console.Write("Messages from master: ");
-    var updatedMasterItems =  await masterClient.GetMessagesAsync(new Empty());
+    var updatedMasterItems = await masterClient.GetMessagesAsync(new Empty());
     WriteMessages(updatedMasterItems);
     Console.Write("Messages from secondary1: ");
     var updatedSecondary1Items = await secondary1Client.GetMessagesAsync(new Empty());
