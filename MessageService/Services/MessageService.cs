@@ -23,7 +23,6 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
 
     public override Task<MessageList> GetMessages(Empty request, ServerCallContext context)
     {
-        _logger.LogInformation($"GetMessages called.");
         var list = new MessageList();
         if (_clusterManager.ServiceSetting.IsMaster)
         {
@@ -46,7 +45,7 @@ public class MessageServiceImpl : MessageService.MessageServiceBase
                 "AddMessage cannot be called on any other node, except from Master."));
         }
 
-        _logger.LogInformation($"AddMessage called with message: {request.Message}.");
+        _logger.LogInformation($"AddMessage called with message: {request.Message}, writeConcern={request.WriteConcern}.");
         var newItem = new MessageResponse
         {
             Message = request.Message
