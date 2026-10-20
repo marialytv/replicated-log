@@ -24,8 +24,8 @@ In secondaries logs that sequence number can be checked.
 Grpc Client sends 5 messages to master, secondary1 stores them ordered, despite of emulated reordering.
 Below are the screenshots of secondary service logs-
 in what order messages were sent from master and how they were processed in secondaries.
-![Secondary1 With Reordering](Screenshots/Secondary1ReorderingEnabled.tiff)
-![Secondary2 Without Reordering](Screenshots/Secondary2ReorderingDisabled.tiff)
+![Secondary1 With Reordering](Screenshots/Secondary1ReorderingEnabled.png)
+![Secondary2 Without Reordering](Screenshots/Secondary2ReorderingDisabled.png)
 
 Reodering can be turned on /off using by setting IsReorderingEnabled parameter in appsettings.*SecondaryService*.json
 Access appsettings file of each service from container->Bind Mounts.
