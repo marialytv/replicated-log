@@ -1,10 +1,8 @@
 using Grpc.Net.Client;
-using Grpc.Net.ClientFactory;
-using GrpcServices;
-using MasterService.Settings;
+using MessageService.Settings;
 using Microsoft.Extensions.Options;
 
-namespace MasterService.Managers;
+namespace MessageService.Managers;
 
 public class ClusterManager
 {
@@ -12,8 +10,7 @@ public class ClusterManager
     private readonly List<GrpcChannel> _channels = new();
     private readonly ILogger<ClusterManager> _logger;
     public ServiceSetting ServiceSetting { get; private set; }
-    public List<MessageService.MessageServiceClient> Clients { get; } = new();
-
+    public Dictionary<string, GrpcServices.MessageService.MessageServiceClient> Clients { get; } = new();
     public ClusterManager(IOptionsMonitor<ServiceSetting> optionsMonitor, ILogger<ClusterManager> logger)
     {
         _logger = logger;
@@ -22,7 +19,8 @@ public class ClusterManager
         {
             ServiceSetting = newSettings;
             _logger.LogInformation($"Service config was changed. New configs are: " +
-                                   $"\nDelay = {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s.");
+                                   $"\nDelay = {TimeSpan.FromMilliseconds(ServiceSetting.Delay).Seconds}s." +
+                                   $"\nIsAvailable={ServiceSetting.IsAvailable}");
         })!;
         
         if (ServiceSetting.IsMaster)
@@ -36,7 +34,7 @@ public class ClusterManager
         {
             var channel = GrpcChannel.ForAddress(url);
             _channels.Add(channel);
-            Clients.Add(new MessageService.MessageServiceClient(channel));
+            Clients.Add(url, new GrpcServices.MessageService.MessageServiceClient(channel));
         }
     }
     

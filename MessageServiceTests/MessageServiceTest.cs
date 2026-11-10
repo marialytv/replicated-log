@@ -1,9 +1,8 @@
 ﻿namespace MessageServiceTests;
-
-using MasterService.Settings;
+using MessageService;
+using MessageService.Settings;
 using System.Diagnostics;
 using Grpc.Net.Client;
-using GrpcServices;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
@@ -81,11 +80,11 @@ public class MessageServiceTest
             HttpClient = httpClient
         });
         
-        var masterClient = new MessageService.MessageServiceClient(masterChannel);
+        var masterClient = new GrpcServices.MessageService.MessageServiceClient(masterChannel);
         
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        await masterClient.AddMessageAsync(new MessageRequest{Message = $"msg1", WriteConcern = (int)writeConcern});
+        await masterClient.AddMessageAsync(new GrpcServices.MessageRequest{Message = $"msg1", WriteConcern = (int)writeConcern});
         stopwatch.Stop();
         
         Assert.That(stopwatch.Elapsed.Seconds, Is.EqualTo(expected));

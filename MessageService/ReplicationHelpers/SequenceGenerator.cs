@@ -1,4 +1,4 @@
-namespace MasterService.ReplicationHelpers;
+namespace MessageService.ReplicationHelpers;
 
 public class SequenceGenerator
 {

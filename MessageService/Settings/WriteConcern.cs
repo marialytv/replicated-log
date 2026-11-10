@@ -1,4 +1,4 @@
-namespace MasterService.Settings;
+namespace MessageService.Settings;
 
 public enum WriteConcern
 { 

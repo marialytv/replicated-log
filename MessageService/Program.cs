@@ -1,6 +1,8 @@
-using MasterService.Managers;
-using MasterService.ReplicationHelpers;
-using MasterService.Settings;
+using MessageService.Managers;
+using MessageService.ReplicationHelpers;
+using MessageService.RetryHelpers;
+using MessageService.Services;
+using MessageService.Settings;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +14,8 @@ builder.Services.Configure<ServiceSetting>(
 builder.Services.AddSingleton<ClusterManager>();
 builder.Services.AddSingleton<WriteAheadLog>();
 builder.Services.AddSingleton<SequenceGenerator>();
-
+builder.Services.AddSingleton<RetryBuffer>();
+builder.Services.AddHostedService<RetryBackgroundWorker>();
 //setup logging
 
 builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
@@ -24,4 +27,9 @@ var app = builder.Build();
 app.MapGrpcService<MessageServiceImpl>();
 app.Run(url);
 
-public partial class Program { }
+namespace MessageService
+{
+    public partial class Program
+    {
+    }
+}

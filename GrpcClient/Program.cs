@@ -1,4 +1,5 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Core;
+using Grpc.Net.Client;
 using GrpcServices;
 
 var masterAddress = Environment.GetEnvironmentVariable("master-node") ?? "http://localhost:5003";
@@ -13,31 +14,47 @@ var secondary2Address = Environment.GetEnvironmentVariable("secondary2-node") ??
 using var secondary2Channel = GrpcChannel.ForAddress(secondary2Address);
 var secondary2Client = new MessageService.MessageServiceClient(secondary2Channel);
 
-Console.WriteLine(" Console application started.");
-Console.WriteLine("Write Concern test");
+Console.WriteLine("Console application started.");
+Console.WriteLine("Retry test");
 
-var task1 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg1", WriteConcern = 1 }).ResponseAsync;
-await RunGetRequests();
-var task2 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg2", WriteConcern = 2 }).ResponseAsync;
-await RunGetRequests();
-var task3 =  masterClient.AddMessageAsync(new MessageRequest { Message = "msg3", WriteConcern = 3 }).ResponseAsync;
-await RunGetRequests();
-var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 }).ResponseAsync;
-await RunGetRequests();
-await RerunGetRequests(8);
+try
+{
+    var task1 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg1", WriteConcern = 1 })
+        .ResponseAsync;
+    await RunGetRequests();
+    var task2 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg2", WriteConcern = 2 })
+        .ResponseAsync;
+    await RunGetRequests();
+    var task3 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg3", WriteConcern = 3 })
+        .ResponseAsync;
+    await RunGetRequests();
+}
+catch (RpcException e)
+{
+    Console.WriteLine($"{e.StatusCode}: {e.Message}");
+    await RerunGetRequests(10);
+}
+
 Console.WriteLine();
 
-//Testing Reordering
-Console.WriteLine("ReorderingTest");
 
-for (int i = 10; i <= 14; i++)
-{
-    var call = await masterClient
-        .AddMessageAsync(new MessageRequest { Message = $"msg{i}", WriteConcern = 1 })
-        .ResponseAsync;
-}
-await RunGetRequests();
-await RerunGetRequests(6);
+
+// var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 }).ResponseAsync;
+// await RunGetRequests();
+// await RerunGetRequests(8);
+// Console.WriteLine();
+
+//Testing Reordering
+// Console.WriteLine("ReorderingTest");
+//
+// for (int i = 10; i <= 14; i++)
+// {
+//     var call = await masterClient
+//         .AddMessageAsync(new MessageRequest { Message = $"msg{i}", WriteConcern = 1 })
+//         .ResponseAsync;
+// }
+// await RunGetRequests();
+// await RerunGetRequests(6);
 
 async Task RerunGetRequests(int seconds)
 {

@@ -8,15 +8,14 @@ service MessageService {
   rpc AddMessage (MessageRequest) returns (MessageResponse);
   //called by the master for replication
   rpc ProcessMessage (DataRequest) returns (DataResponse);
+  rpc CheckHealth(Empty) returns (HealthResponse);
 }
 
 message Empty {}
-
 message MessageRequest {
   string message = 1;
   int32 writeConcern = 2;
 }
-
 message DataRequest {
   string message = 1;
   int64 sequenceID = 2;
@@ -24,10 +23,12 @@ message DataRequest {
 message DataResponse{
   string output = 1;
 }
-
 message MessageResponse {
   string message = 1;
 }
 message MessageList {
   repeated MessageResponse items = 1;
+}
+message HealthResponse{
+  int32 status = 1;
 }
