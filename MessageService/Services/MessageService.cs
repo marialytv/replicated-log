@@ -111,101 +111,93 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
         // =========================================================
         // PATH 2: BLOCKING WRITE CONCERNS (Wait for Any/All)
         // =========================================================
-        int currentAcks = 0;
         bool isFirstAttempt = true;
 
         // 1. Create a hard 10-second timeout linked to the client's connection state
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
         timeoutCts.CancelAfter(_clusterManager.ServiceSetting.Timeout);
 
-        try
+        async Task<(string Url, bool Success)> TryDeliverWithRetriesAsync(string url, GrpcServices.MessageService.MessageServiceClient client)
         {
-            while (currentAcks < targetAcks)
+            bool isFirstAttempt = true;
+        
+            while (!timeoutCts.Token.IsCancellationRequested)
             {
-                var attemptTasks = pendingNodes.Select(async node =>
+                try
                 {
-                    var url = node.Key;
-                    var client = node.Value;
+                    // 1. Health check (Skip on the very first try)
+                    if (!isFirstAttempt)
+                    {
+                        var health = await client.CheckHealthAsync(new Empty(), deadline: DateTime.UtcNow.AddSeconds(1));
+                        if (health.Status != (int)HealthStatus.Healthy)
+                        {
+                            await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token); // Wait and loop again
+                            continue;
+                        }
+                    }
+                    
+                    await client.ProcessMessageAsync(downstreamReq, cancellationToken: CancellationToken.None).ResponseAsync;
+                    return (url, true); // Success!
+                }
+                catch (RpcException)
+                {
+                    // 3. Network failed. Wait 2 seconds before checking health again.
+                    isFirstAttempt = false;
                     try
                     {
-                        if (!isFirstAttempt)
-                        {
-                            var health = await client.CheckHealthAsync(new Empty());
-                            if (health.Status != (int)HealthStatus.Healthy) return (Url: url, Success: false);
-                        }
-
-                        //need to set a deadline,because grpc will handle connection in case call throws an exception
-                        await client.ProcessMessageAsync(downstreamReq, deadline: DateTime.UtcNow.AddSeconds(2))
-                            .ResponseAsync;
-                        return (Url: url, Success: true);
+                        await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
                     }
-                    catch
+                    catch (OperationCanceledException)
                     {
-                        return (Url: url, Success: false);
-                    }
-                }).ToList();
-
-                while (attemptTasks.Any() && currentAcks < targetAcks)
-                {
-                    var timeoutTask = Task.Delay(Timeout.Infinite, timeoutCts.Token);
-                    // Wait for a secondary to reply OR for the 10-second timeout to trip
-                    var completedTask = await Task.WhenAny(attemptTasks.Cast<Task>().Append(timeoutTask));
-
-                    if (completedTask == timeoutTask)
-                    {
-                        break; // The timeout fuse blew. Break out of the inner loop immediately.
-                    }
-
-                    // Extract the result from the secondary
-                    var actualTask = (Task<(string Url, bool Success)>)completedTask;
-                    attemptTasks.Remove(actualTask);
-                    var res = await actualTask;
-
-                    if (res.Success)
-                    {
-                        pendingNodes.Remove(res.Url);
-                        currentAcks++;
+                        break;
                     }
                 }
-
-                // 3. Exit Conditions
-                if (currentAcks >= targetAcks) break; // Success!
-                if (timeoutCts.Token.IsCancellationRequested) break; // Timeout!
-
-                isFirstAttempt = false;
-
-                await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // This gracefully catches the TaskCanceledException thrown if 
-            // Task.Delay(2000, timeoutCts.Token) is forcefully interrupted by the timeout.
-        }
 
-        // 4. Handle remaining slow or broken nodes
-        if (pendingNodes.Any())
+            // 4. Timeout Reached. Secondary is still dead. Hand to background worker.
+            _retryBuffer.Enqueue(url, downstreamReq);
+            return (url, false);
+        }
+        
+        // Launch the retry loop for every secondary simultaneously
+        var deliveryTasks = _clusterManager.Clients
+            .Select(kvp => TryDeliverWithRetriesAsync(kvp.Key, kvp.Value))
+            .ToList();
+
+        int currentAcks = 0;
+
+        // Track completions as they happen
+        while (deliveryTasks.Any() && currentAcks < targetAcks)
         {
-            foreach (var brokenClient in pendingNodes)
+            var completedTask = await Task.WhenAny(deliveryTasks);
+            deliveryTasks.Remove(completedTask);
+        
+            var result = await completedTask;
+            if (result.Success)
             {
-                _retryBuffer.Enqueue(brokenClient.Key, downstreamReq);
+                currentAcks++;
             }
         }
 
-        // 5. Evaluate final status and report to the client
+        // Once we exit the loop, cancel any tasks that are STILL running 
+        // (e.g., if target was 1, but 2 are still polling). Canceling them forces 
+        // them to drop their payload into the _retryBuffer!
+        timeoutCts.Cancel(); 
+
+        // Evaluate final success
         if (currentAcks < targetAcks)
         {
-            // Determine exactly why we failed to inform the client accurately
-            string failureReason = context.CancellationToken.IsCancellationRequested
-                ? "Client disconnected before write concern was met."
-                : $"Replication timeout ({TimeSpan.FromMilliseconds(_clusterManager.ServiceSetting.Timeout).Seconds}s) exceeded.";
+            string reason = context.CancellationToken.IsCancellationRequested 
+                ? "Client disconnected." 
+                : "Replication timeout (10s) exceeded.";
 
-            throw new RpcException(new Status(StatusCode.Unavailable,
-                $"Write Concern not met. {failureReason} Background syncing will continue."));
+            throw new RpcException(new Status(StatusCode.Unavailable, 
+                $"Write Concern not met. {reason} Background syncing continues."));
         }
 
         _logger.LogInformation($"AddMessage finished for message: {request.Message}.");
-        return await Task.FromResult(newItem);
+        return newItem;
+        
     }
 
     public override async Task<DataResponse> ProcessMessage(DataRequest request, ServerCallContext context)
@@ -236,4 +228,5 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
         _logger.LogInformation($"ProcessMessage finished for message: {request.Message}, seqID={request.SequenceID}.");
         return new DataResponse { Output = result };
     }
+    
 }
