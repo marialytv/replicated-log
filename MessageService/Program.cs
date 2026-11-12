@@ -15,7 +15,10 @@ builder.Services.AddSingleton<ClusterManager>();
 builder.Services.AddSingleton<WriteAheadLog>();
 builder.Services.AddSingleton<SequenceGenerator>();
 builder.Services.AddSingleton<RetryBuffer>();
-builder.Services.AddHostedService<RetryBackgroundWorker>();
+if (builder.Configuration.GetValue<bool>("ServiceConfig:IsMaster"))
+{
+    builder.Services.AddHostedService<RetryBackgroundWorker>();
+}
 //setup logging
 
 builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration

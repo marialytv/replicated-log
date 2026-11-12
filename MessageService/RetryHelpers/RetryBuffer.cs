@@ -5,12 +5,39 @@ namespace MessageService.RetryHelpers;
 
 public class RetryBuffer
 {
-    // Maps the Secondary URL to a queue of failed requests
-    public ConcurrentDictionary<string, ConcurrentQueue<DataRequest>> Queues { get; } = new();
+    // A standard FIFO queue per node URL
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<DataRequest>> _queues = new();
 
-    public void Enqueue(string url, DataRequest request)
+    public void Enqueue(string nodeUrl, DataRequest request)
     {
-        var queue = Queues.GetOrAdd(url, _ => new ConcurrentQueue<DataRequest>());
+        var queue = _queues.GetOrAdd(nodeUrl, _ => new ConcurrentQueue<DataRequest>());
         queue.Enqueue(request);
+    }
+
+    public bool TryPeek(string nodeUrl, out DataRequest? request)
+    {
+        if (_queues.TryGetValue(nodeUrl, out var queue))
+        {
+            return queue.TryPeek(out request);
+        }
+        
+        request = null;
+        return false;
+    }
+
+    public bool TryDequeue(string nodeUrl, out DataRequest? request)
+    {
+        if (_queues.TryGetValue(nodeUrl, out var queue))
+        {
+            return queue.TryDequeue(out request);
+        }
+        
+        request = null;
+        return false;
+    }
+
+    public IEnumerable<string> GetNodesWithPendingMessages()
+    {
+        return _queues.Where(kvp => !kvp.Value.IsEmpty).Select(kvp => kvp.Key).ToList();
     }
 }
