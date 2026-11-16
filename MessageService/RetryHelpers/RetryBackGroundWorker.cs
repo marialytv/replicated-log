@@ -89,7 +89,7 @@ public class RetryBackgroundWorker : BackgroundService
 
                         _retryBuffer.TryDequeue(url, out _);
                         _logger.LogInformation(
-                            $"BACKGROUND RECOVERY: Delivered missed Sequence {pendingReq.SequenceID} to {url}.");
+                            $"SECONDARY RECOVERY: Delivered missed Sequence {pendingReq.SequenceID} to {url}.");
                     }
                     catch (RpcException ex)
                     {

@@ -94,13 +94,14 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
                     var client = kvp.Value;
                     try
                     {
-                        await client.ProcessMessageAsync(downstreamReq,  cancellationToken: CancellationToken.None);
+                        await client.ProcessMessageAsync(downstreamReq, cancellationToken: CancellationToken.None);
                     }
                     catch
                     {
                         _retryBuffer.Enqueue(url, downstreamReq);
-                        _logger.LogWarning($"Secondary {url}, message {request.Message} unreachable for WriteConcern=MasterOnly. Queued for background retry.");
-                    } 
+                        _logger.LogWarning(
+                            $"Secondary {url}, message {request.Message} unreachable for WriteConcern={request.WriteConcern}. Queued for background retry.");
+                    }
                 });
                 await Task.WhenAll(backgroundTasks);
             });
@@ -111,63 +112,63 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
         // =========================================================
         // PATH 2: BLOCKING WRITE CONCERNS (Wait for Any/All)
         // =========================================================
-        
+
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
         timeoutCts.CancelAfter(_clusterManager.ServiceSetting.Timeout);
         var pendingUrls = _clusterManager.Clients.Keys.ToHashSet();
 
-        async Task<(string Url, bool Success)> TryDeliverWithRetriesAsync(string url, GrpcServices.MessageService.MessageServiceClient client)
+        async Task<(string Url, bool Success)> TryDeliverWithRetriesAsync(string url,
+            GrpcServices.MessageService.MessageServiceClient client)
         {
             bool isFirstAttempt = true;
-        
-            while (!timeoutCts.Token.IsCancellationRequested)
+            try
             {
-                try
+                while (!timeoutCts.Token.IsCancellationRequested)
                 {
-                    if (!isFirstAttempt)
-                    {
-                        var health = await client.CheckHealthAsync(new Empty(), deadline: DateTime.UtcNow.AddSeconds(1));
-                        if (health.Status != (int)HealthStatus.Healthy)
-                        {
-                            //retry if it is unhealthy
-                            await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
-                            continue;
-                        }
-                    }
-                    
-                    await client.ProcessMessageAsync(downstreamReq, cancellationToken: CancellationToken.None).ResponseAsync;
-                    return (url, true);
-                }
-                catch (RpcException)
-                {
-                    isFirstAttempt = false;
                     try
                     {
-                        //retry on thrown exception
-                        await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
+                        if (!isFirstAttempt)
+                        {
+                            var health =
+                                await client.CheckHealthAsync(new Empty(), deadline: DateTime.UtcNow.AddSeconds(1));
+                            if (health.Status != (int)HealthStatus.Healthy)
+                            {
+                                //retry if it is unhealthy
+                                await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
+                                continue;
+                            }
+                        }
+
+                        await client.ProcessMessageAsync(downstreamReq, cancellationToken: CancellationToken.None)
+                            .ResponseAsync;
+                        return (url, true);
                     }
-                    catch (OperationCanceledException)
+                    catch (RpcException)
                     {
-                        break;
+                        isFirstAttempt = false;
+                        await Task.Delay(_clusterManager.ServiceSetting.RetryInterval, timeoutCts.Token);
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+            }
             return (url, false);
         }
-        
+
         //send message to all secondaries simultaneously
         var deliveryTasks = _clusterManager.Clients
             .Select(kvp => TryDeliverWithRetriesAsync(kvp.Key, kvp.Value))
             .ToList();
 
         int currentAcks = 0;
-        
+
         //exit loop if write concern is satisfied or timeout reached
         while (deliveryTasks.Any() && currentAcks < targetAcks)
         {
             var completedTask = await Task.WhenAny(deliveryTasks);
             deliveryTasks.Remove(completedTask);
-        
+
             var result = await completedTask;
             if (result.Success)
             {
@@ -175,27 +176,27 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
                 pendingUrls.Remove(result.Url);
             }
         }
-        
-        timeoutCts.Cancel(); 
-        
+
+        timeoutCts.Cancel();
+
         foreach (var missingUrl in pendingUrls)
         {
             _retryBuffer.Enqueue(missingUrl, downstreamReq);
             _logger.LogWarning($"Secondary {missingUrl}, message {request.Message} queued for background retry.");
         }
-        
+
         if (currentAcks < targetAcks)
         {
-            string reason = context.CancellationToken.IsCancellationRequested 
-                ? "Client disconnected." 
+            string reason = context.CancellationToken.IsCancellationRequested
+                ? "Client disconnected."
                 : $"Replication timeout {TimeSpan.FromMilliseconds(_clusterManager.ServiceSetting.Timeout).Seconds}s. exceeded.";
 
-            throw new RpcException(new Status(StatusCode.Unavailable, 
+            throw new RpcException(new Status(StatusCode.Unavailable,
                 $"Write Concern not met. {reason} Background syncing continues."));
         }
 
         _logger.LogInformation($"AddMessage finished for message: {request.Message}.");
-        return newItem; 
+        return newItem;
     }
 
     public override async Task<DataResponse> ProcessMessage(DataRequest request, ServerCallContext context)
@@ -223,8 +224,8 @@ public class MessageServiceImpl : GrpcServices.MessageService.MessageServiceBase
 
         var result = await _wal.AppendAsync(request.SequenceID, request.Message);
 
-        _logger.LogInformation($"ProcessMessage finished for message: {request.Message}, seqID={request.SequenceID} with result: {result}.");
+        _logger.LogInformation(
+            $"ProcessMessage finished for message: {request.Message}, seqID={request.SequenceID} with result: {result}.");
         return new DataResponse { Output = result };
     }
-    
 }
