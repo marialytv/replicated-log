@@ -26,13 +26,14 @@ try
         .ResponseAsync;
     await RunGetRequests();
     // run task3, task4 simultaneously -
-    // check that writeconcern=all is not blocking the client and master process subsequent request
+    // check that writeconcern=all is not blocking the client and master processes the subsequent request
     var task3 = masterClient.AddMessageAsync(new MessageRequest { Message = "msg3", WriteConcern = 3 })
         .ResponseAsync;
     await RunGetRequests();
     var task4 = await masterClient.AddMessageAsync(new MessageRequest { Message = "msg4", WriteConcern = 1 })
         .ResponseAsync;
     await RunGetRequests();
+    await RerunGetRequests(20);
 }
 catch (RpcException e)
 {
@@ -44,7 +45,7 @@ Console.WriteLine();
 //Testing Reordering
 // Console.WriteLine("ReorderingTest");
 //
-// for (int i = 10; i <= 14; i++)
+// for (int i = 10; i <= 16; i++)
 // {
 //     var call = await masterClient
 //         .AddMessageAsync(new MessageRequest { Message = $"msg{i}", WriteConcern = 1 })
